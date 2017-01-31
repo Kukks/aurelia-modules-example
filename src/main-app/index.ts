@@ -3,7 +3,6 @@ import {autoinject} from "aurelia-dependency-injection";
 import {FrameworkConfiguration} from "aurelia-framework";
 import {BaseAureliaModule, module} from "../aurelia-modules/index";
 
-
 const routes: RouteConfig[] = [{
   name: "home",
   title: "home",
@@ -21,6 +20,6 @@ export class MainApplication extends BaseAureliaModule {
 }
 
 export function configure(config: FrameworkConfiguration) {
-  //config.globalResources([]);
+  config.globalResources('./resources/iterable-value-converter');
 }
 
