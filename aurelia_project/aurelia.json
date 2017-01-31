@@ -114,6 +114,11 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
+          {
+            "name": "aurelia-repeat-strategies",
+            "path": "../node_modules/aurelia-repeat-strategies/dist/amd",
+            "main": "index"
+          },
           "text",
           {
             "name": "aurelia-templating-resources",

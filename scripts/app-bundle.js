@@ -51,6 +51,7 @@ define('main',["require", "exports", "./environment"], function (require, export
         };
         aurelia.use
             .standardConfiguration()
+            .plugin('aurelia-repeat-strategies')
             .feature('main-app')
             .feature('aurelia-modules', moduleConfiguration);
         if (environment_1.default.debug) {
@@ -71,11 +72,13 @@ define('aurelia-modules/module.manager',["require", "exports"], function (requir
     var ModuleManager = (function () {
         function ModuleManager() {
         }
-        ModuleManager.registerModule = function (name, module) {
-            this.registeredModules.push({ name: name, module: module, asPlugin: false });
+        ModuleManager.registerModule = function (name, routes, module, asPlugin) {
+            if (asPlugin === void 0) { asPlugin = false; }
+            this.registeredModules.push({ name: name, module: module, routes: routes, asPlugin: false });
         };
-        ModuleManager.prototype.registerModule = function (name, module) {
-            ModuleManager.registerModule(name, module);
+        ModuleManager.prototype.registerModule = function (name, routes, module, asPlugin) {
+            if (asPlugin === void 0) { asPlugin = false; }
+            ModuleManager.registerModule(name, routes, module, asPlugin);
         };
         ModuleManager.prototype.getModuleConfiguration = function (name, config) {
             if (!config) {
@@ -94,6 +97,17 @@ define('aurelia-modules/module.manager',["require", "exports"], function (requir
             return ModuleManager.registeredModules.find(function (registeredModule) {
                 return registeredModule.name === module;
             });
+        };
+        ModuleManager.prototype.getInstancedModule = function (moduleName, config) {
+            var registeredModule = this.getModule(moduleName);
+            var moduleConfig = this.getModuleConfiguration(moduleName, config);
+            if (registeredModule) {
+                return {
+                    module: registeredModule,
+                    config: moduleConfig
+                };
+            }
+            return null;
         };
         ModuleManager.prototype.getChildModules = function (moduleConfiguration) {
             var result = [];
@@ -128,18 +142,38 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.manager", "aurelia-route-mapper", "aurelia-dependency-injection"], function (require, exports, module_manager_1, aurelia_route_mapper_1, aurelia_dependency_injection_1) {
     "use strict";
+    function getChildModuleRoute(moduleManager, childModule) {
+        var childrenConfiguration = childModule.config.children;
+        var childModuleRoutes = [];
+        childrenConfiguration.forEach(function (childConfig) {
+            moduleManager.getChildModules(childConfig).forEach(function (childModuleOfChildConfig) {
+                childModuleRoutes.push(getChildModuleRoute(moduleManager, childModuleOfChildConfig));
+            });
+        });
+        return {
+            name: childModule.config.identifier || childModule.config.module,
+            title: childModule.config.title || childModule.config.module,
+            route: childModule.config.route || childModule.config.module,
+            nav: true,
+            moduleId: childModule.module.asPlugin ? childModule.module.name : "../" + childModule.module.name + "/index",
+            settings: {
+                moduleConfig: childModule.config,
+                childRoutes: childModule.module.routes.concat(childModuleRoutes)
+            }
+        };
+    }
     var BaseAureliaModule = (function () {
         function BaseAureliaModule(routeMapper, moduleManager) {
             this.routeMapper = routeMapper;
             this.moduleManager = moduleManager;
         }
         BaseAureliaModule.prototype.getRoutes = function () {
-            return this.childModuleRoutes;
+            return this.childModuleRoutes.concat(this.instancedModule ? this.instancedModule.module.routes : []);
         };
         ;
         Object.defineProperty(BaseAureliaModule.prototype, "childModules", {
             get: function () {
-                return this.moduleManager.getChildModules(this.moduleConfiguration);
+                return this.moduleManager.getChildModules(this.instancedModule.config);
             },
             enumerable: true,
             configurable: true
@@ -147,16 +181,19 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
         ;
         Object.defineProperty(BaseAureliaModule.prototype, "childModuleRoutes", {
             get: function () {
+                var _this = this;
                 var result = [];
                 this.childModules.forEach(function (childModule) {
+                    var route = childModule.config.route || childModule.config.module;
                     result.push({
                         name: childModule.config.identifier || childModule.config.module,
                         title: childModule.config.title || childModule.config.module,
-                        route: childModule.config.route || childModule.config.module,
+                        route: route,
                         nav: true,
                         moduleId: childModule.module.asPlugin ? childModule.module.name : "../" + childModule.module.name + "/index",
                         settings: {
-                            moduleConfig: childModule.config
+                            instancedModule: childModule,
+                            childRoutes: [getChildModuleRoute(_this.moduleManager, childModule)]
                         }
                     });
                 });
@@ -175,11 +212,11 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
             this.router = router;
         };
         BaseAureliaModule.prototype.setModuleConfiguration = function (routeConfig) {
-            if (routeConfig && routeConfig.settings.moduleConfig) {
-                this.moduleConfiguration = routeConfig.settings.moduleConfig;
+            if (routeConfig && routeConfig.settings.instancedModule) {
+                this.instancedModule = routeConfig.settings.instancedModule;
             }
             else {
-                this.moduleConfiguration = this.moduleManager.getModuleConfiguration(this.getModuleName());
+                this.instancedModule = this.moduleManager.getInstancedModule(this.getModuleName());
             }
         };
         return BaseAureliaModule;
@@ -193,10 +230,11 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
 
 define('aurelia-modules/module.decorator',["require", "exports", "./module.manager"], function (require, exports, module_manager_1) {
     "use strict";
-    function module(name) {
+    function module(name, routes) {
+        if (routes === void 0) { routes = []; }
         return function (target) {
             if (target) {
-                module_manager_1.ModuleManager.registerModule(name, target);
+                module_manager_1.ModuleManager.registerModule(name, routes, target);
             }
             return target;
         };
@@ -231,6 +269,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 define('main-app/index',["require", "exports", "aurelia-dependency-injection", "../aurelia-modules/index"], function (require, exports, aurelia_dependency_injection_1, index_1) {
     "use strict";
+    var routes = [{
+            name: "home",
+            title: "home",
+            route: "/",
+            nav: true,
+            moduleId: "./pages/home"
+        }];
     var MainApplication = (function (_super) {
         __extends(MainApplication, _super);
         function MainApplication() {
@@ -239,23 +284,11 @@ define('main-app/index',["require", "exports", "aurelia-dependency-injection", "
         MainApplication.prototype.getModuleName = function () {
             return "main-app";
         };
-        MainApplication.prototype.getRoutes = function () {
-            return [
-                {
-                    name: "home",
-                    title: "home",
-                    route: "/",
-                    nav: true,
-                    moduleId: "./pages/home"
-                }
-            ].concat(_super.prototype.getRoutes.call(this));
-        };
-        ;
         return MainApplication;
     }(index_1.BaseAureliaModule));
     MainApplication = __decorate([
         aurelia_dependency_injection_1.autoinject(),
-        index_1.module("main-app")
+        index_1.module("main-app", routes)
     ], MainApplication);
     exports.MainApplication = MainApplication;
     function configure(config) {
@@ -308,6 +341,6 @@ exports.RouteMapper = RouteMapper;
 
 });
 
-define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\n  <p>\n    Hello, I'm the Main Application and these are my routes:\n  </p>\n  <ul>\n    <li repeat.for=\"route of router.navigation\">\n      <a href.bind=\"route.href\">${route.title}</a>\n    </li>\n  </ul>\n  <router-view></router-view>\n</template>\n"; });
+define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\n  <p>\n    Hello, I'm the Main Application and these are my routes:\n  </p>\n  <ul>\n    <li repeat.for=\"route of router.navigation\">\n      <a href.bind=\"route.href\">${route.title}</a>\n    </li>\n  </ul>\n  <router-view></router-view>\n\n\n\n  Here are all the names of the registered routes  withing the name, no matter whether they are dynamic or static modules!:\n  <ul>\n    <li repeat.for=\"[key, value] of routeMapper.names | iterable\">\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\n  </ul>\n</template>\n"; });
 define('text!main-app/pages/home.html', ['module'], function(module) { module.exports = "<template>\n  Home for the main app\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

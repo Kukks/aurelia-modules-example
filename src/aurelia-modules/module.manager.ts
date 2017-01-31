@@ -5,18 +5,19 @@ import {
   InstancedModule,
   AureliaModuleInitializer
 } from "./module.models";
+import {RouteConfig} from "aurelia-router";
 
 export class ModuleManager {
   private static registeredModules: IRegisteredModule[] = [];
 
   public static fullModuleConfiguration: IModuleConfiguration;
 
-  public static registerModule(name: string, module: AureliaModuleInitializer): void {
-    this.registeredModules.push({name, module, asPlugin: false});
+  public static registerModule(name: string,routes: RouteConfig[], module: AureliaModuleInitializer, asPlugin: boolean = false): void {
+    this.registeredModules.push({name, module,routes, asPlugin: false});
   }
 
-  public registerModule(name: string, module: (...args: any[]) => IAureliaModule): void {
-    ModuleManager.registerModule(name, module);
+  public registerModule(name: string,routes: RouteConfig[], module: AureliaModuleInitializer, asPlugin: boolean = false): void {
+    ModuleManager.registerModule(name, routes,module, asPlugin);
   }
 
   public getModuleConfiguration(name?: string, config?: IModuleConfiguration): IModuleConfiguration {
@@ -37,6 +38,18 @@ export class ModuleManager {
     return ModuleManager.registeredModules.find((registeredModule: IRegisteredModule) => {
       return registeredModule.name === module;
     });
+  }
+
+  public getInstancedModule(moduleName:string, config?: IModuleConfiguration):InstancedModule{
+    const registeredModule = this.getModule(moduleName);
+    const moduleConfig = this.getModuleConfiguration(moduleName, config);
+    if (registeredModule) {
+      return {
+          module: registeredModule,
+          config: moduleConfig
+        };
+    }
+    return null;
   }
 
   public getChildModules(moduleConfiguration: IModuleConfiguration): InstancedModule[] {

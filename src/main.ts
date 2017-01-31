@@ -43,6 +43,7 @@ export function configure(aurelia: Aurelia) {
 
   aurelia.use
     .standardConfiguration()
+    .plugin('aurelia-repeat-strategies')
     .feature('main-app')
     .feature('aurelia-modules', moduleConfiguration);
 

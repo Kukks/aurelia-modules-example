@@ -8,4 +8,12 @@
     </li>
   </ul>
   <router-view></router-view>
+
+
+
+  Here are all the names of the registered routes  withing the name, no matter whether they are dynamic or static modules!:
+  <ul>
+    <li repeat.for="[key, value] of routeMapper.names | iterable">
+      <a href.bind="routeMapper.generate(key)">${key}</a></li>
+  </ul>
 </template>
