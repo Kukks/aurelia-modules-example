@@ -23913,22 +23913,26 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     config.container.registerAlias(_aureliaTemplating.BindingLanguage, TemplatingBindingLanguage);
   }
 });
-define('aurelia-repeat-strategies/index',['exports', 'aurelia-templating-resources/repeat-strategy-locator', './iterable-repeat-strategy'], function (exports, _aureliaTemplatingResourcesRepeatStrategyLocator, _iterableRepeatStrategy) {
-  'use strict';
+define('aurelia-repeat-strategies/index',['require','exports','module','aurelia-templating-resources/repeat-strategy-locator','./iterable-repeat-strategy'],function (require, exports, module) {'use strict';
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-  exports.configure = configure;
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+exports.configure = configure;
 
-  function configure(config) {
-    var repeatStrategyLocator = config.container.get(_aureliaTemplatingResourcesRepeatStrategyLocator.RepeatStrategyLocator);
-    repeatStrategyLocator.addStrategy(function (items) {
-      return typeof items[Symbol.iterator] === 'function';
-    }, new _iterableRepeatStrategy.IteratorStrategy());
-    config.globalResources('./iterable-value-converter');
-  }
-});;define('aurelia-repeat-strategies', ['aurelia-repeat-strategies/index'], function (main) { return main; });
+var _aureliaTemplatingResourcesRepeatStrategyLocator = require('aurelia-templating-resources/repeat-strategy-locator');
+
+var _iterableRepeatStrategy = require('./iterable-repeat-strategy');
+
+function configure(config) {
+  var repeatStrategyLocator = config.container.get(_aureliaTemplatingResourcesRepeatStrategyLocator.RepeatStrategyLocator);
+  repeatStrategyLocator.addStrategy(function (items) {
+    return typeof items[Symbol.iterator] === 'function';
+  }, new _iterableRepeatStrategy.IteratorStrategy());
+  config.globalResources('./iterable-value-converter');
+}
+});
+;define('aurelia-repeat-strategies', ['aurelia-repeat-strategies/index'], function (main) { return main; });
 
 define('aurelia-templating-resources/repeat-strategy-locator',['exports', './null-repeat-strategy', './array-repeat-strategy', './map-repeat-strategy', './set-repeat-strategy', './number-repeat-strategy'], function (exports, _nullRepeatStrategy, _arrayRepeatStrategy, _mapRepeatStrategy, _setRepeatStrategy, _numberRepeatStrategy) {
   'use strict';
@@ -24639,87 +24643,89 @@ define('aurelia-templating-resources/number-repeat-strategy',['exports', './repe
     return NumberRepeatStrategy;
   }();
 });
-define('aurelia-repeat-strategies/iterable-repeat-strategy',['exports', 'aurelia-templating-resources/repeat-utilities'], function (exports, _aureliaTemplatingResourcesRepeatUtilities) {
-  'use strict';
+define('aurelia-repeat-strategies/iterable-repeat-strategy',['require','exports','module','aurelia-templating-resources/repeat-utilities'],function (require, exports, module) {'use strict';
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var IteratorStrategy = (function () {
-    function IteratorStrategy() {
-      _classCallCheck(this, IteratorStrategy);
-    }
-
-    _createClass(IteratorStrategy, [{
-      key: 'instanceChanged',
-      value: function instanceChanged(repeat, items) {
-        var _this = this;
-
-        var removePromise = repeat.viewSlot.removeAll(true);
-        if (removePromise instanceof Promise) {
-          removePromise.then(function () {
-            return _this._standardProcessItems(repeat, items);
-          });
-          return;
-        }
-        this._standardProcessItems(repeat, items);
-      }
-    }, {
-      key: '_standardProcessItems',
-      value: function _standardProcessItems(repeat, items) {
-        var index = 0;
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-          for (var _iterator = items[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var _step$value = _slicedToArray(_step.value, 2);
-
-            var key = _step$value[0];
-            var value = _step$value[1];
-
-            var overrideContext = (0, _aureliaTemplatingResourcesRepeatUtilities.createFullOverrideContext)(repeat, value, index, undefined, key);
-            var view = repeat.viewFactory.create();
-            view.bind(overrideContext.bindingContext, overrideContext);
-            repeat.viewSlot.add(view);
-            ++index;
-          }
-        } catch (err) {
-          _didIteratorError = true;
-          _iteratorError = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion && _iterator['return']) {
-              _iterator['return']();
-            }
-          } finally {
-            if (_didIteratorError) {
-              throw _iteratorError;
-            }
-          }
-        }
-      }
-    }, {
-      key: 'instanceMutated',
-      value: function instanceMutated(repeat, items, changes) {}
-    }, {
-      key: 'getCollectionObserver',
-      value: function getCollectionObserver(observerLocator, items) {}
-    }]);
-
-    return IteratorStrategy;
-  })();
-
-  exports.IteratorStrategy = IteratorStrategy;
+Object.defineProperty(exports, '__esModule', {
+  value: true
 });
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _aureliaTemplatingResourcesRepeatUtilities = require('aurelia-templating-resources/repeat-utilities');
+
+var IteratorStrategy = (function () {
+  function IteratorStrategy() {
+    _classCallCheck(this, IteratorStrategy);
+  }
+
+  _createClass(IteratorStrategy, [{
+    key: 'instanceChanged',
+    value: function instanceChanged(repeat, items) {
+      var _this = this;
+
+      var removePromise = repeat.viewSlot.removeAll(true);
+      if (removePromise instanceof Promise) {
+        removePromise.then(function () {
+          return _this._standardProcessItems(repeat, items);
+        });
+        return;
+      }
+      this._standardProcessItems(repeat, items);
+    }
+  }, {
+    key: '_standardProcessItems',
+    value: function _standardProcessItems(repeat, items) {
+      var index = 0;
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = items[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var _step$value = _slicedToArray(_step.value, 2);
+
+          var key = _step$value[0];
+          var value = _step$value[1];
+
+          var overrideContext = (0, _aureliaTemplatingResourcesRepeatUtilities.createFullOverrideContext)(repeat, value, index, undefined, key);
+          var view = repeat.viewFactory.create();
+          view.bind(overrideContext.bindingContext, overrideContext);
+          repeat.viewSlot.add(view);
+          ++index;
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator['return']) {
+            _iterator['return']();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'instanceMutated',
+    value: function instanceMutated(repeat, items, changes) {}
+  }, {
+    key: 'getCollectionObserver',
+    value: function getCollectionObserver(observerLocator, items) {}
+  }]);
+
+  return IteratorStrategy;
+})();
+
+exports.IteratorStrategy = IteratorStrategy;
+});
+
 define('text',{});
 define('aurelia-templating-resources/aurelia-templating-resources',['exports', './compose', './if', './with', './repeat', './show', './hide', './sanitize-html', './replaceable', './focus', 'aurelia-templating', './css-resource', './html-sanitizer', './attr-binding-behavior', './binding-mode-behaviors', './throttle-binding-behavior', './debounce-binding-behavior', './signal-binding-behavior', './binding-signaler', './update-trigger-binding-behavior', './abstract-repeater', './repeat-strategy-locator', './html-resource-plugin', './null-repeat-strategy', './array-repeat-strategy', './map-repeat-strategy', './set-repeat-strategy', './number-repeat-strategy', './repeat-utilities', './analyze-view-factory', './aurelia-hide-style'], function (exports, _compose, _if, _with, _repeat, _show, _hide, _sanitizeHtml, _replaceable, _focus, _aureliaTemplating, _cssResource, _htmlSanitizer, _attrBindingBehavior, _bindingModeBehaviors, _throttleBindingBehavior, _debounceBindingBehavior, _signalBindingBehavior, _bindingSignaler, _updateTriggerBindingBehavior, _abstractRepeater, _repeatStrategyLocator, _htmlResourcePlugin, _nullRepeatStrategy, _arrayRepeatStrategy, _mapRepeatStrategy, _setRepeatStrategy, _numberRepeatStrategy, _repeatUtilities, _analyzeViewFactory, _aureliaHideStyle) {
   'use strict';
@@ -27098,4 +27104,4 @@ exports.RouteMapper = route_mapper_1.RouteMapper;
 });
 ;define('aurelia-route-mapper', ['aurelia-route-mapper/index'], function (main) { return main; });
 
-function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"aurelia-binding":"..\\node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-framework":"..\\node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-bootstrapper":"..\\node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-event-aggregator":"..\\node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-history":"..\\node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-dependency-injection":"..\\node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-loader":"..\\node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-history-browser":"..\\node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-loader-default":"..\\node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-logging":"..\\node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-logging-console":"..\\node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-metadata":"..\\node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-pal-browser":"..\\node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-pal":"..\\node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-path":"..\\node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-polyfills":"..\\node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-task-queue":"..\\node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","aurelia-route-recognizer":"..\\node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-router":"..\\node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-templating":"..\\node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","aurelia-templating-binding":"..\\node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","text":"..\\node_modules\\text\\text","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-repeat-strategies","location":"../node_modules/aurelia-repeat-strategies/dist/amd","main":"index"},{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"},{"name":"aurelia-route-mapper","location":"../node_modules/aurelia-route-mapper/dist","main":"index"}],"stubModules":["text"],"shim":{},"bundles":{"app-bundle":["environment","aurelia-modules/module.models","main","aurelia-modules/module.manager","aurelia-modules/base-aurelia-module","aurelia-modules/module.decorator","aurelia-modules/index","main-app/index","main-app/pages/home","aurelia-route-mapper/route-mapper"]}})}
+function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"aurelia-binding":"..\\node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-event-aggregator":"..\\node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-dependency-injection":"..\\node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-loader":"..\\node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-bootstrapper":"..\\node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-history":"..\\node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-history-browser":"..\\node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-framework":"..\\node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-loader-default":"..\\node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-logging":"..\\node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-logging-console":"..\\node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-metadata":"..\\node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-pal":"..\\node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-pal-browser":"..\\node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-path":"..\\node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-polyfills":"..\\node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-route-recognizer":"..\\node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-router":"..\\node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-task-queue":"..\\node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","aurelia-templating":"..\\node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","aurelia-templating-binding":"..\\node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","text":"..\\node_modules\\text\\text","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-repeat-strategies","location":"../node_modules/aurelia-repeat-strategies/dist/commonjs","main":"index"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-route-mapper","location":"../node_modules/aurelia-route-mapper/dist","main":"index"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"}],"stubModules":["text"],"shim":{},"bundles":{"app-bundle":["environment","aurelia-modules/module.models","main","aurelia-modules/module.manager","aurelia-modules/base-aurelia-module","aurelia-modules/module.decorator","aurelia-modules/index","main-app/index","main-app/pages/home","aurelia-route-mapper/route-mapper"]}})}
