@@ -6,6 +6,10 @@
     "type": "???",
     "url": "???"
   },
+  "scripts": {
+  "preinstall": "npm list aurelia-cli -g || npm install aurelia-cli -g",
+  "watch": "au run --env dev --watch"
+},
   "license": "MIT",
   "dependencies": {
     "aurelia-animator-css": "^1.0.0",

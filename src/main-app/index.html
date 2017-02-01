@@ -1,6 +1,6 @@
 <template>
   <p>
-    Hello, I'm the Main Application and these are my routes:
+    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:
   </p>
   <ul>
     <li repeat.for="route of router.navigation">
@@ -11,7 +11,7 @@
 
 
 
-  Here are all the names of the registered routes  withing the name, no matter whether they are dynamic or static modules!:
+  Here are all the names of the registered routes that I(${instancedModule.config.identifier|| instancedModule.config.module}) know of
   <ul>
     <li repeat.for="key of routeMapper.names | iterable">
       <a href.bind="routeMapper.generate(key)">${key}</a></li>

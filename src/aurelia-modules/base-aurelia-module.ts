@@ -4,29 +4,6 @@ import {RouteConfig, Router, RouterConfiguration} from "aurelia-router";
 import {IAureliaModule, IModuleConfiguration, InstancedModule} from "./module.models";
 import {autoinject} from "aurelia-dependency-injection";
 
-
-function getChildModuleRoute(moduleManager: ModuleManager, childModule: InstancedModule):RouteConfig{
-  const childrenConfiguration: IModuleConfiguration[] = childModule.config.children;
-  let childModuleRoutes: RouteConfig[] = [];
-  childrenConfiguration.forEach((childConfig: IModuleConfiguration)=>{
-    moduleManager.getChildModules(childConfig).forEach((childModuleOfChildConfig: InstancedModule)=>{
-      childModuleRoutes.push(getChildModuleRoute(moduleManager, childModuleOfChildConfig));
-    });
-  });
-
-  return {
-    name: childModule.config.identifier || childModule.config.module,
-    title: childModule.config.title || childModule.config.module,
-    route: childModule.config.route || childModule.config.module ,
-    nav: true,
-    moduleId: childModule.module.asPlugin? childModule.module.name : `../${childModule.module.name}/index`,
-    settings: {
-      moduleConfig: childModule.config,
-      childRoutes: [...childModule.module.routes, ...childModuleRoutes ]
-    }
-  };
-}
-
 @autoinject()
 export abstract class BaseAureliaModule implements IAureliaModule {
   public router: Router;
@@ -39,7 +16,9 @@ export abstract class BaseAureliaModule implements IAureliaModule {
   public abstract getModuleName(): string;
 
   public getRoutes(): RouteConfig[] {
-    return [...this.childModuleRoutes, ...this.instancedModule?this.instancedModule.module.routes:[]];
+    const childModuleRoutes = this.childModuleRoutes;
+    console.log(this.instancedModule.config.identifier || this.instancedModule.config.module, "the dynamic routes generated are: ", childModuleRoutes);
+    return [...this.instancedModule ? this.instancedModule.module.routes : [], ...childModuleRoutes];
   };
 
   public get childModules(): InstancedModule[] {
@@ -49,18 +28,7 @@ export abstract class BaseAureliaModule implements IAureliaModule {
   public get childModuleRoutes(): RouteConfig[] {
     let result: RouteConfig[] = [];
     this.childModules.forEach((childModule: InstancedModule) => {
-      const route = childModule.config.route || childModule.config.module;
-      result.push({
-        name: childModule.config.identifier || childModule.config.module,
-        title: childModule.config.title || childModule.config.module,
-        route: route,
-        nav: true,
-        moduleId: childModule.module.asPlugin? childModule.module.name : `../${childModule.module.name}/index`,
-        settings: {
-          instancedModule: childModule,
-          childRoutes: [getChildModuleRoute(this.moduleManager, childModule)]
-        }
-      });
+      result.push(...this.getChildModuleRoute(childModule));
     });
     return result;
   }
@@ -69,8 +37,9 @@ export abstract class BaseAureliaModule implements IAureliaModule {
                          router: Router,
                          params: Object,
                          routeConfig?: RouteConfig): void {
+    routerConfiguration.options.pushState = true;
     this.setModuleConfiguration(routeConfig);
-    if(routerConfiguration) {
+    if (routerConfiguration) {
       const routes = this.getRoutes();
       routerConfiguration.map(routes);
       this.routeMapper.map(routes)
@@ -78,13 +47,41 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     this.router = router;
   }
 
-  private setModuleConfiguration(routeConfig?:RouteConfig){
+  private setModuleConfiguration(routeConfig?: RouteConfig) {
     if (routeConfig && routeConfig.settings.instancedModule) {
       this.instancedModule = routeConfig.settings.instancedModule;
-    }else{
+    } else {
       this.instancedModule = this.moduleManager.getInstancedModule(this.getModuleName())
     }
   }
 
+
+  private  getChildModuleRoute(childModule: InstancedModule): RouteConfig[] {
+  const childrenConfiguration: IModuleConfiguration[] = childModule.config.children;
+  let childModuleRoutes: RouteConfig[] = [];
+  childrenConfiguration.forEach((childConfig: IModuleConfiguration) => {
+
+    const instancedModule = this.moduleManager.getInstancedModule(childConfig.module, childModule.config);
+    childModuleRoutes.push(...this.getChildModuleRoute(instancedModule));
+  });
+
+
+  let route = childModule.config.route || childModule.config.module;
+  if(!route.endsWith("/")){
+    route += "/";
+  }
+  const result = [{
+    name: childModule.config.identifier || childModule.config.module,
+    title: childModule.config.title || childModule.config.module,
+    route: route,
+    nav: true,
+    moduleId: childModule.module.asPlugin ? childModule.module.name : `../${childModule.module.name}/index`,
+    settings: {
+      instancedModule: childModule,
+      childRoutes: [...childModule.module.routes, ...childModuleRoutes]
+    }
+  }];
+  return result;
+}
 
 }

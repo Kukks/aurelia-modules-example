@@ -23,7 +23,6 @@ export class ModuleManager {
   public getModuleConfiguration(name?: string, config?: IModuleConfiguration): IModuleConfiguration {
     if (!config) {
       return ModuleManager.fullModuleConfiguration;
-
     }
     if (name) {
       return config.children.find((moduleConfig: IModuleConfiguration) => {
