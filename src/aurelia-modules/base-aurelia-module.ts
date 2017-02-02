@@ -1,7 +1,7 @@
 import {ModuleManager} from "./module.manager";
 import {RouteMapper} from "aurelia-route-mapper";
 import {RouteConfig, Router, RouterConfiguration} from "aurelia-router";
-import {IAureliaModule, IModuleConfiguration, InstancedModule} from "./module.models";
+import {IAureliaModule, IModuleConfiguration, InstancedModule, IRegisteredModule} from "./module.models";
 import {autoinject} from "aurelia-dependency-injection";
 
 @autoinject()
@@ -74,9 +74,15 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     if (childModule.config.viewPorts && childModule.config.viewPorts) {
       viewPorts = {};
       for (let viewport of childModule.config.viewPorts) {
-        const instancedModule = childModule.module.name === viewport.module ? childModule.module :
-          this.moduleManager.getInstancedModule(viewport.module).module;
-        viewPorts[viewport.name] = instancedModule.asPlugin ? instancedModule.name : `../${instancedModule.name}/index`;
+        let registeredModule:IRegisteredModule;
+        let instancedModule: InstancedModule = childModule.module.name === viewport.module ? childModule :
+          this.moduleManager.getInstancedModule(viewport.module);
+        if(instancedModule){
+          registeredModule = instancedModule.module;
+        }
+        viewPorts[viewport.name] =
+          registeredModule? registeredModule.asPlugin ? registeredModule.name : `../${registeredModule.name}/index` :
+            viewport.module;
       }
     } else {
       viewPorts["default"] = {moduleId: childModule.module.asPlugin ? childModule.module.name : `../${childModule.module.name}/index`};

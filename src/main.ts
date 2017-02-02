@@ -23,6 +23,16 @@ export function configure(aurelia: Aurelia) {
           module: "main-app",
           identifier: "third-main-app",
           title: "third App entry point",
+          viewPorts:[
+            {
+              module: "main-app",
+              name:"default"
+            },
+            {
+              module: "./main-app/pages/home",
+              name:"amazing"
+            }
+          ],
           children: []
         }]
       },

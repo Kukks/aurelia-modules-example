@@ -32,6 +32,16 @@ define('main',["require", "exports", "./environment"], function (require, export
                             module: "main-app",
                             identifier: "third-main-app",
                             title: "third App entry point",
+                            viewPorts: [
+                                {
+                                    module: "main-app",
+                                    name: "default"
+                                },
+                                {
+                                    module: "./main-app/pages/home",
+                                    name: "amazing"
+                                }
+                            ],
                             children: []
                         }]
                 },
@@ -207,9 +217,15 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
                 viewPorts = {};
                 for (var _i = 0, _a = childModule.config.viewPorts; _i < _a.length; _i++) {
                     var viewport = _a[_i];
-                    var instancedModule = childModule.module.name === viewport.module ? childModule.module :
-                        this.moduleManager.getInstancedModule(viewport.module).module;
-                    viewPorts[viewport.name] = instancedModule.asPlugin ? instancedModule.name : "../" + instancedModule.name + "/index";
+                    var registeredModule = void 0;
+                    var instancedModule = childModule.module.name === viewport.module ? childModule :
+                        this.moduleManager.getInstancedModule(viewport.module);
+                    if (instancedModule) {
+                        registeredModule = instancedModule.module;
+                    }
+                    viewPorts[viewport.name] =
+                        registeredModule ? registeredModule.asPlugin ? registeredModule.name : "../" + registeredModule.name + "/index" :
+                            viewport.module;
                 }
             }
             else {
@@ -368,6 +384,6 @@ exports.RouteMapper = RouteMapper;
 
 });
 
-define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\r\n  <p>\r\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\r\n  </p>\r\n  <ul>\r\n    <li repeat.for=\"route of router.navigation\">\r\n      <a href.bind=\"route.href\">${route.title}</a>\r\n    </li>\r\n  </ul>\r\n  <router-view></router-view>\r\n\r\n\r\n\r\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier|| instancedModule.config.module}) know of\r\n  <ul>\r\n    <li repeat.for=\"key of routeMapper.names | iterable\">\r\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\r\n  </ul>\r\n</template>\r\n"; });
+define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\n  <p>\n\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\n  </p>\n  <ul>\n    <li repeat.for=\"route of router.navigation\">\n\n      <a href.bind=\"route.href\">${route.title}</a><br/>\n      viewports:\n      <ul>\n        <li repeat.for=\"key of route.viewports | iterable\">\n          ${key}\n        </li>\n      </ul><hr/>\n    </li>\n  </ul>\n  <router-view name=\"default\"></router-view>\n  <router-view name=\"amazing\"></router-view>\n\n\n\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier|| instancedModule.config.module}) know of\n  <ul>\n    <li repeat.for=\"key of routeMapper.names | iterable\">\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\n  </ul>\n</template>\n"; });
 define('text!main-app/pages/home.html', ['module'], function(module) { module.exports = "<template>\n  Home for the main app\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

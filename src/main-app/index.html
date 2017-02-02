@@ -1,13 +1,22 @@
 <template>
   <p>
+
     Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:
   </p>
   <ul>
     <li repeat.for="route of router.navigation">
-      <a href.bind="route.href">${route.title}</a>
+
+      <a href.bind="route.href">${route.title}</a><br/>
+      viewports:
+      <ul>
+        <li repeat.for="key of route.viewports | iterable">
+          ${key}
+        </li>
+      </ul><hr/>
     </li>
   </ul>
-  <router-view></router-view>
+  <router-view name="default"></router-view>
+  <router-view name="amazing"></router-view>
 
 
 
