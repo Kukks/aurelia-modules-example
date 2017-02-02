@@ -1,6 +1,5 @@
 import {
   IRegisteredModule,
-  IAureliaModule,
   IModuleConfiguration,
   InstancedModule,
   AureliaModuleInitializer

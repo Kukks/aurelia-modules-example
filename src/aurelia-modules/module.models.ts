@@ -6,6 +6,7 @@ export interface IModuleConfiguration {
   identifier?: string;
   route?: string;
   title?: string;
+  viewPorts?: {name:string, module:string}[];
   module: string;
   children?: IModuleConfiguration[];
 }

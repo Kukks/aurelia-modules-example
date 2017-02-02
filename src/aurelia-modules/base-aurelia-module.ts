@@ -55,33 +55,45 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     }
   }
 
-
   private  getChildModuleRoute(childModule: InstancedModule): RouteConfig[] {
-  const childrenConfiguration: IModuleConfiguration[] = childModule.config.children;
-  let childModuleRoutes: RouteConfig[] = [];
-  childrenConfiguration.forEach((childConfig: IModuleConfiguration) => {
+    const childrenConfiguration: IModuleConfiguration[] = childModule.config.children;
+    let childModuleRoutes: RouteConfig[] = [];
+    childrenConfiguration.forEach((childConfig: IModuleConfiguration) => {
 
-    const instancedModule = this.moduleManager.getInstancedModule(childConfig.module, childModule.config);
-    childModuleRoutes.push(...this.getChildModuleRoute(instancedModule));
-  });
+      const instancedModule = this.moduleManager.getInstancedModule(childConfig.module, childModule.config);
+      childModuleRoutes.push(...this.getChildModuleRoute(instancedModule));
+    });
 
 
-  let route = childModule.config.route || childModule.config.module;
-  if(!route.endsWith("/")){
-    route += "/";
-  }
-  const result = [{
-    name: childModule.config.identifier || childModule.config.module,
-    title: childModule.config.title || childModule.config.module,
-    route: route,
-    nav: true,
-    moduleId: childModule.module.asPlugin ? childModule.module.name : `../${childModule.module.name}/index`,
-    settings: {
-      instancedModule: childModule,
-      childRoutes: [...childModule.module.routes, ...childModuleRoutes]
+    let route = childModule.config.route || childModule.config.module;
+    if (!route.endsWith("/")) {
+      route += "/";
     }
-  }];
-  return result;
-}
+
+    let viewPorts = {};
+    if (childModule.config.viewPorts && childModule.config.viewPorts) {
+      viewPorts = {};
+      for (let viewport of childModule.config.viewPorts) {
+        const instancedModule = childModule.module.name === viewport.module ? childModule.module :
+          this.moduleManager.getInstancedModule(viewport.module).module;
+        viewPorts[viewport.name] = instancedModule.asPlugin ? instancedModule.name : `../${instancedModule.name}/index`;
+      }
+    } else {
+      viewPorts["default"] = {moduleId: childModule.module.asPlugin ? childModule.module.name : `../${childModule.module.name}/index`};
+    }
+
+    const result: RouteConfig[] = [{
+      name: childModule.config.identifier || childModule.config.module,
+      title: childModule.config.title || childModule.config.module,
+      route: route,
+      nav: true,
+      viewPorts: viewPorts,
+      settings: {
+        instancedModule: childModule,
+        childRoutes: [...childModule.module.routes, ...childModuleRoutes]
+      }
+    }];
+    return result;
+  }
 
 }

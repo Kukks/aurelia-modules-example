@@ -202,12 +202,25 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
             if (!route.endsWith("/")) {
                 route += "/";
             }
+            var viewPorts = {};
+            if (childModule.config.viewPorts && childModule.config.viewPorts) {
+                viewPorts = {};
+                for (var _i = 0, _a = childModule.config.viewPorts; _i < _a.length; _i++) {
+                    var viewport = _a[_i];
+                    var instancedModule = childModule.module.name === viewport.module ? childModule.module :
+                        this.moduleManager.getInstancedModule(viewport.module).module;
+                    viewPorts[viewport.name] = instancedModule.asPlugin ? instancedModule.name : "../" + instancedModule.name + "/index";
+                }
+            }
+            else {
+                viewPorts["default"] = { moduleId: childModule.module.asPlugin ? childModule.module.name : "../" + childModule.module.name + "/index" };
+            }
             var result = [{
                     name: childModule.config.identifier || childModule.config.module,
                     title: childModule.config.title || childModule.config.module,
                     route: route,
                     nav: true,
-                    moduleId: childModule.module.asPlugin ? childModule.module.name : "../" + childModule.module.name + "/index",
+                    viewPorts: viewPorts,
                     settings: {
                         instancedModule: childModule,
                         childRoutes: childModule.module.routes.concat(childModuleRoutes)
@@ -355,6 +368,6 @@ exports.RouteMapper = RouteMapper;
 
 });
 
-define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\n  <p>\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\n  </p>\n  <ul>\n    <li repeat.for=\"route of router.navigation\">\n      <a href.bind=\"route.href\">${route.title}</a>\n    </li>\n  </ul>\n  <router-view></router-view>\n\n\n\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier|| instancedModule.config.module}) know of\n  <ul>\n    <li repeat.for=\"key of routeMapper.names | iterable\">\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\n  </ul>\n</template>\n"; });
+define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\r\n  <p>\r\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\r\n  </p>\r\n  <ul>\r\n    <li repeat.for=\"route of router.navigation\">\r\n      <a href.bind=\"route.href\">${route.title}</a>\r\n    </li>\r\n  </ul>\r\n  <router-view></router-view>\r\n\r\n\r\n\r\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier|| instancedModule.config.module}) know of\r\n  <ul>\r\n    <li repeat.for=\"key of routeMapper.names | iterable\">\r\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\r\n  </ul>\r\n</template>\r\n"; });
 define('text!main-app/pages/home.html', ['module'], function(module) { module.exports = "<template>\n  Home for the main app\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map
