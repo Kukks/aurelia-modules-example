@@ -1,7 +1,7 @@
 import {ModuleManager} from "./module.manager";
 import {RouteMapper} from "aurelia-route-mapper";
-import {RouteConfig, Router, RouterConfiguration} from "aurelia-router";
-import {IAureliaModule, IModuleConfiguration, InstancedModule} from "./module.models";
+import {RouteConfig, Router, RouterConfiguration, NavigationInstruction} from "aurelia-router";
+import {IAureliaModule, IModuleConfiguration, InstancedModule, IRegisteredModule} from "./module.models";
 import {autoinject} from "aurelia-dependency-injection";
 
 @autoinject()
@@ -31,6 +31,12 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     });
     return result;
   }
+
+  public activate(params: any, navigationInstruction: NavigationInstruction) {
+
+    console.log("activating:", navigationInstruction);
+  }
+
 
   public configureRouter(routerConfiguration: RouterConfiguration,
                          router: Router,
@@ -64,21 +70,14 @@ export abstract class BaseAureliaModule implements IAureliaModule {
       childModuleRoutes.push(...this.getChildModuleRoute(instancedModule));
     });
 
-    let route = childModule.config.route || childModule.config.module;
-    if (!route.length) {
-      this.fixTrailingSlash(<string>route);
-    }else{
-      (<string[]>route).forEach((individualRoute: string)=>{
-        this.fixTrailingSlash(individualRoute);
-      })
-    }
+    const route = childModule.config.route || childModule.config.module;
 
-    const result = [{
+    const result: RouteConfig[] = [{
       name: childModule.config.identifier || childModule.config.module,
       title: childModule.config.title || childModule.config.module,
-      route: route,
+      route: this.fixRoute(route),
       nav: true,
-      moduleId: childModule.module.asPlugin ? childModule.module.name : `../${childModule.module.name}/index`,
+      viewPorts: this.createViewports(childModule),
       settings: {
         instancedModule: childModule,
         childRoutes: [...childModule.module.routes, ...childModuleRoutes]
@@ -87,10 +86,44 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     return result;
   }
 
-  private fixTrailingSlash(str: string) {
+  private createViewports(childModule: InstancedModule): {} {
+    let viewPorts = {};
+    if (childModule.config.viewPorts && childModule.config.viewPorts) {
+      viewPorts = {};
+      for (let viewport of childModule.config.viewPorts) {
+        let registeredModule: IRegisteredModule;
+        let instancedModule: InstancedModule = childModule.module.name === viewport.module ? childModule :
+          this.moduleManager.getInstancedModule(viewport.module);
+        if (instancedModule) {
+          registeredModule = instancedModule.module;
+        }
+        viewPorts[viewport.name] = {
+          moduleId: registeredModule ?
+              registeredModule.asPlugin ?
+                  registeredModule.name :
+                  `../${registeredModule.name}/index` :
+              viewport.module
+        }
+      }
+    } else {
+      viewPorts["default"] = {moduleId: childModule.module.asPlugin ? childModule.module.name : `../${childModule.module.name}/index`};
+    }
+    return viewPorts;
+  }
+
+  private fixRoute(route: string | string[]): string | string[] {
+    if (!Array.isArray(route)) {
+      return this.fixTrailingSlash(route);
+    } else {
+      return Array.from(route, (singleRoute:string, i:number) => this.fixTrailingSlash(singleRoute));
+    }
+  }
+
+  private fixTrailingSlash(str: string):string {
     if (str && !str.endsWith("/")) {
       str = `${str}/`;
     }
+    return str;
   }
 
 }

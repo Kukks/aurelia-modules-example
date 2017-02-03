@@ -172,6 +172,9 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
             enumerable: true,
             configurable: true
         });
+        BaseAureliaModule.prototype.activate = function (params, navigationInstruction) {
+            console.log("activating:", navigationInstruction);
+        };
         BaseAureliaModule.prototype.configureRouter = function (routerConfiguration, router, params, routeConfig) {
             routerConfiguration.options.pushState = true;
             this.setModuleConfiguration(routeConfig);
@@ -199,21 +202,59 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
                 childModuleRoutes.push.apply(childModuleRoutes, _this.getChildModuleRoute(instancedModule));
             });
             var route = childModule.config.route || childModule.config.module;
-            if (!route.endsWith("/")) {
-                route += "/";
-            }
             var result = [{
                     name: childModule.config.identifier || childModule.config.module,
                     title: childModule.config.title || childModule.config.module,
-                    route: route,
+                    route: this.fixRoute(route),
                     nav: true,
-                    moduleId: childModule.module.asPlugin ? childModule.module.name : "../" + childModule.module.name + "/index",
+                    viewPorts: this.createViewports(childModule),
                     settings: {
                         instancedModule: childModule,
                         childRoutes: childModule.module.routes.concat(childModuleRoutes)
                     }
                 }];
             return result;
+        };
+        BaseAureliaModule.prototype.createViewports = function (childModule) {
+            var viewPorts = {};
+            if (childModule.config.viewPorts && childModule.config.viewPorts) {
+                viewPorts = {};
+                for (var _i = 0, _a = childModule.config.viewPorts; _i < _a.length; _i++) {
+                    var viewport = _a[_i];
+                    var registeredModule = void 0;
+                    var instancedModule = childModule.module.name === viewport.module ? childModule :
+                        this.moduleManager.getInstancedModule(viewport.module);
+                    if (instancedModule) {
+                        registeredModule = instancedModule.module;
+                    }
+                    viewPorts[viewport.name] = {
+                        moduleId: registeredModule ?
+                            registeredModule.asPlugin ?
+                                registeredModule.name :
+                                "../" + registeredModule.name + "/index" :
+                            viewport.module
+                    };
+                }
+            }
+            else {
+                viewPorts["default"] = { moduleId: childModule.module.asPlugin ? childModule.module.name : "../" + childModule.module.name + "/index" };
+            }
+            return viewPorts;
+        };
+        BaseAureliaModule.prototype.fixRoute = function (route) {
+            var _this = this;
+            if (!Array.isArray(route)) {
+                return this.fixTrailingSlash(route);
+            }
+            else {
+                return Array.from(route, function (singleRoute, i) { return _this.fixTrailingSlash(singleRoute); });
+            }
+        };
+        BaseAureliaModule.prototype.fixTrailingSlash = function (str) {
+            if (str && !str.endsWith("/")) {
+                str = str + "/";
+            }
+            return str;
         };
         return BaseAureliaModule;
     }());
@@ -355,6 +396,37 @@ exports.RouteMapper = RouteMapper;
 
 });
 
-define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\n  <p>\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\n  </p>\n  <ul>\n    <li repeat.for=\"route of router.navigation\">\n      <a href.bind=\"route.href\">${route.title}</a>\n    </li>\n  </ul>\n  <router-view></router-view>\n\n\n\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier|| instancedModule.config.module}) know of\n  <ul>\n    <li repeat.for=\"key of routeMapper.names | iterable\">\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\n  </ul>\n</template>\n"; });
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('aurelia-modules/hidden-view-port',["require", "exports", "aurelia-dependency-injection", "aurelia-templating"], function (require, exports, aurelia_dependency_injection_1, aurelia_templating_1) {
+    "use strict";
+    var HiddenViewPort = (function () {
+        function HiddenViewPort(element) {
+            this.element = element;
+        }
+        HiddenViewPort.prototype.activate = function () {
+            this.element.parentNode.classList.add('aurelia-hide');
+        };
+        HiddenViewPort.prototype.deactivate = function () {
+            this.element.parentNode.classList.remove('aurelia-hide');
+        };
+        return HiddenViewPort;
+    }());
+    HiddenViewPort = __decorate([
+        aurelia_templating_1.noView,
+        aurelia_dependency_injection_1.autoinject,
+        __metadata("design:paramtypes", [HTMLElement])
+    ], HiddenViewPort);
+    exports.HiddenViewPort = HiddenViewPort;
+});
+
+define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\n  <p>\n\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\n  </p>\n  <ul>\n    <li repeat.for=\"route of router.navigation\">\n\n      <a href.bind=\"route.href\">${route.title}</a><br/>\n      viewports:\n      <ul>\n        <li repeat.for=\"key of route.viewPorts | iterable\">\n          ${key}\n        </li>\n      </ul>\n      <hr/>\n    </li>\n  </ul>\n  <router-view name=\"default\"></router-view>\n  <router-view name=\"amazing\"></router-view>\n\n\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier||\n  instancedModule.config.module}) know of\n  <ul>\n    <li repeat.for=\"key of routeMapper.names | iterable\">\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\n  </ul>\n</template>\n"; });
 define('text!main-app/pages/home.html', ['module'], function(module) { module.exports = "<template>\n  Home for the main app\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

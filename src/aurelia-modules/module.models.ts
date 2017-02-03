@@ -6,6 +6,7 @@ export interface IModuleConfiguration {
   identifier?: string;
   route?: string | string[];
   title?: string;
+  viewPorts?: IViewportConfiguration[];
   module: string;
   children?: IModuleConfiguration[];
 }
@@ -13,7 +14,7 @@ export interface IModuleConfiguration {
 export interface IRegisteredModule {
   name: string;
   asPlugin: boolean;
-  routes:RouteConfig[];
+  routes: RouteConfig[];
   module: AureliaModuleInitializer;
 }
 
@@ -22,8 +23,13 @@ export interface InstancedModule {
   config: IModuleConfiguration;
 }
 
-export interface IAureliaModule extends  Object{
+export interface IAureliaModule extends Object {
   childModules: InstancedModule[];
   getModuleName(): string;
   getRoutes(): RouteConfig[];
+}
+
+export interface IViewportConfiguration {
+  name: string;
+  module: string;
 }
