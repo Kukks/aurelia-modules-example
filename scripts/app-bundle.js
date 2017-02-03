@@ -148,7 +148,8 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
         }
         BaseAureliaModule.prototype.getRoutes = function () {
             var childModuleRoutes = this.childModuleRoutes;
-            console.log(this.instancedModule.config.identifier || this.instancedModule.config.module, "the dynamic routes generated are: ", childModuleRoutes);
+            console.log(this.instancedModule.config.identifier ||
+                this.instancedModule.config.module, "the dynamic routes generated are: ", childModuleRoutes);
             return (this.instancedModule ? this.instancedModule.module.routes : []).concat(childModuleRoutes);
         };
         ;
@@ -237,7 +238,10 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
                 }
             }
             else {
-                viewPorts["default"] = { moduleId: childModule.module.asPlugin ? childModule.module.name : "../" + childModule.module.name + "/index" };
+                viewPorts["default"] = {
+                    moduleId: childModule.module.asPlugin ?
+                        childModule.module.name : "../" + childModule.module.name + "/index"
+                };
             }
             return viewPorts;
         };

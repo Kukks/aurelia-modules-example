@@ -16,12 +16,13 @@ export abstract class BaseAureliaModule implements IAureliaModule {
 
   public getRoutes(): RouteConfig[] {
     const childModuleRoutes = this.childModuleRoutes;
-    console.log(this.instancedModule.config.identifier || this.instancedModule.config.module, "the dynamic routes generated are: ", childModuleRoutes);
+    console.log(this.instancedModule.config.identifier ||
+      this.instancedModule.config.module, "the dynamic routes generated are: ", childModuleRoutes);
     return [...this.instancedModule ? this.instancedModule.module.routes : [], ...childModuleRoutes];
   };
 
   public get childModules(): InstancedModule[] {
-    return this.moduleManager.getChildModules(this.instancedModule.config)
+    return this.moduleManager.getChildModules(this.instancedModule.config);
   };
 
   public get childModuleRoutes(): RouteConfig[] {
@@ -37,7 +38,6 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     console.log("activating:", navigationInstruction);
   }
 
-
   public configureRouter(routerConfiguration: RouterConfiguration,
                          router: Router,
                          params: Object,
@@ -47,7 +47,7 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     if (routerConfiguration) {
       const routes = this.getRoutes();
       routerConfiguration.map(routes);
-      this.routeMapper.map(routes)
+      this.routeMapper.map(routes);
     }
     this.router = router;
   }
@@ -56,10 +56,9 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     if (routeConfig && routeConfig.settings.instancedModule) {
       this.instancedModule = routeConfig.settings.instancedModule;
     } else {
-      this.instancedModule = this.moduleManager.getInstancedModule(this.getModuleName())
+      this.instancedModule = this.moduleManager.getInstancedModule(this.getModuleName());
     }
   }
-
 
   private  getChildModuleRoute(childModule: InstancedModule): RouteConfig[] {
     const childrenConfiguration: IModuleConfiguration[] = childModule.config.children;
@@ -99,14 +98,17 @@ export abstract class BaseAureliaModule implements IAureliaModule {
         }
         viewPorts[viewport.name] = {
           moduleId: registeredModule ?
-              registeredModule.asPlugin ?
-                  registeredModule.name :
-                  `../${registeredModule.name}/index` :
-              viewport.module
-        }
+            registeredModule.asPlugin ?
+              registeredModule.name :
+              `../${registeredModule.name}/index` :
+            viewport.module
+        };
       }
     } else {
-      viewPorts["default"] = {moduleId: childModule.module.asPlugin ? childModule.module.name : `../${childModule.module.name}/index`};
+      viewPorts["default"] = {
+        moduleId: childModule.module.asPlugin ?
+          childModule.module.name : `../${childModule.module.name}/index`
+      };
     }
     return viewPorts;
   }
@@ -115,11 +117,11 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     if (!Array.isArray(route)) {
       return this.fixTrailingSlash(route);
     } else {
-      return Array.from(route, (singleRoute:string, i:number) => this.fixTrailingSlash(singleRoute));
+      return Array.from(route, (singleRoute: string, i: number) => this.fixTrailingSlash(singleRoute));
     }
   }
 
-  private fixTrailingSlash(str: string):string {
+  private fixTrailingSlash(str: string): string {
     if (str && !str.endsWith("/")) {
       str = `${str}/`;
     }
