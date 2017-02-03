@@ -4,7 +4,7 @@ export type AureliaModuleInitializer = (...args: any[]) => IAureliaModule;
 
 export interface IModuleConfiguration {
   identifier?: string;
-  route?: string;
+  route?: string | string[];
   title?: string;
   module: string;
   children?: IModuleConfiguration[];
