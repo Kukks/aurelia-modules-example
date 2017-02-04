@@ -13,7 +13,7 @@ export interface IModuleConfiguration {
 
 export interface IRegisteredModule {
   name: string;
-  asPlugin: boolean;
+  path: string;
   routes: RouteConfig[];
   module: AureliaModuleInitializer;
 }

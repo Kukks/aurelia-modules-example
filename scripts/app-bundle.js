@@ -71,13 +71,13 @@ define('aurelia-modules/module.manager',["require", "exports"], function (requir
     var ModuleManager = (function () {
         function ModuleManager() {
         }
-        ModuleManager.registerModule = function (name, routes, module, asPlugin) {
-            if (asPlugin === void 0) { asPlugin = false; }
-            this.registeredModules.push({ name: name, module: module, routes: routes, asPlugin: false });
+        ModuleManager.registerModule = function (name, routes, module, path) {
+            if (path === void 0) { path = null; }
+            this.registeredModules.push({ name: name, module: module, routes: routes, path: path });
         };
-        ModuleManager.prototype.registerModule = function (name, routes, module, asPlugin) {
-            if (asPlugin === void 0) { asPlugin = false; }
-            ModuleManager.registerModule(name, routes, module, asPlugin);
+        ModuleManager.prototype.registerModule = function (name, routes, module, path) {
+            if (path === void 0) { path = null; }
+            ModuleManager.registerModule(name, routes, module, path);
         };
         ModuleManager.prototype.getModuleConfiguration = function (name, config) {
             if (!config) {
@@ -230,20 +230,21 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
                     }
                     viewPorts[viewport.name] = {
                         moduleId: registeredModule ?
-                            registeredModule.asPlugin ?
-                                registeredModule.name :
-                                "../" + registeredModule.name + "/index" :
+                            (this.getPathToModule(registeredModule)) :
                             viewport.module
                     };
                 }
             }
             else {
                 viewPorts["default"] = {
-                    moduleId: childModule.module.asPlugin ?
-                        childModule.module.name : "../" + childModule.module.name + "/index"
+                    moduleId: this.getPathToModule(childModule.module)
                 };
             }
             return viewPorts;
+        };
+        BaseAureliaModule.prototype.getPathToModule = function (registeredModule) {
+            return registeredModule.path ?
+                registeredModule.name : "../" + registeredModule.name + "/index";
         };
         BaseAureliaModule.prototype.fixRoute = function (route) {
             var _this = this;
@@ -267,6 +268,37 @@ define('aurelia-modules/base-aurelia-module',["require", "exports", "./module.ma
         __metadata("design:paramtypes", [aurelia_route_mapper_1.RouteMapper, module_manager_1.ModuleManager])
     ], BaseAureliaModule);
     exports.BaseAureliaModule = BaseAureliaModule;
+});
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('aurelia-modules/hidden-view-port',["require", "exports", "aurelia-dependency-injection", "aurelia-templating"], function (require, exports, aurelia_dependency_injection_1, aurelia_templating_1) {
+    "use strict";
+    var HiddenViewPort = (function () {
+        function HiddenViewPort(element) {
+            this.element = element;
+        }
+        HiddenViewPort.prototype.activate = function () {
+            this.element.parentNode.classList.add('aurelia-hide');
+        };
+        HiddenViewPort.prototype.deactivate = function () {
+            this.element.parentNode.classList.remove('aurelia-hide');
+        };
+        return HiddenViewPort;
+    }());
+    HiddenViewPort = __decorate([
+        aurelia_templating_1.noView,
+        aurelia_dependency_injection_1.autoinject,
+        __metadata("design:paramtypes", [HTMLElement])
+    ], HiddenViewPort);
+    exports.HiddenViewPort = HiddenViewPort;
 });
 
 define('aurelia-modules/module.decorator',["require", "exports", "./module.manager"], function (require, exports, module_manager_1) {
@@ -400,37 +432,6 @@ exports.RouteMapper = RouteMapper;
 
 });
 
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('aurelia-modules/hidden-view-port',["require", "exports", "aurelia-dependency-injection", "aurelia-templating"], function (require, exports, aurelia_dependency_injection_1, aurelia_templating_1) {
-    "use strict";
-    var HiddenViewPort = (function () {
-        function HiddenViewPort(element) {
-            this.element = element;
-        }
-        HiddenViewPort.prototype.activate = function () {
-            this.element.parentNode.classList.add('aurelia-hide');
-        };
-        HiddenViewPort.prototype.deactivate = function () {
-            this.element.parentNode.classList.remove('aurelia-hide');
-        };
-        return HiddenViewPort;
-    }());
-    HiddenViewPort = __decorate([
-        aurelia_templating_1.noView,
-        aurelia_dependency_injection_1.autoinject,
-        __metadata("design:paramtypes", [HTMLElement])
-    ], HiddenViewPort);
-    exports.HiddenViewPort = HiddenViewPort;
-});
-
-define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\n  <p>\n\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\n  </p>\n  <ul>\n    <li repeat.for=\"route of router.navigation\">\n\n      <a href.bind=\"route.href\">${route.title}</a><br/>\n      viewports:\n      <ul>\n        <li repeat.for=\"key of route.viewPorts | iterable\">\n          ${key}\n        </li>\n      </ul>\n      <hr/>\n    </li>\n  </ul>\n  <router-view name=\"default\"></router-view>\n  <router-view name=\"amazing\"></router-view>\n\n\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier||\n  instancedModule.config.module}) know of\n  <ul>\n    <li repeat.for=\"key of routeMapper.names | iterable\">\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\n  </ul>\n</template>\n"; });
+define('text!main-app/index.html', ['module'], function(module) { module.exports = "<template>\r\n  <p>\r\n\r\n    Hello, I'm the ${instancedModule.config.identifier|| instancedModule.config.module} and these are my routes:\r\n  </p>\r\n  <ul>\r\n    <li repeat.for=\"route of router.navigation\">\r\n\r\n      <a href.bind=\"route.href\">${route.title}</a><br/>\r\n      viewports:\r\n      <ul>\r\n        <li repeat.for=\"key of route.viewPorts | iterable\">\r\n          ${key}\r\n        </li>\r\n      </ul>\r\n      <hr/>\r\n    </li>\r\n  </ul>\r\n  <router-view name=\"default\"></router-view>\r\n  <router-view name=\"amazing\"></router-view>\r\n\r\n\r\n  Here are all the names of the registered routes that I(${instancedModule.config.identifier||\r\n  instancedModule.config.module}) know of\r\n  <ul>\r\n    <li repeat.for=\"key of routeMapper.names | iterable\">\r\n      <a href.bind=\"routeMapper.generate(key)\">${key}</a></li>\r\n  </ul>\r\n</template>\r\n"; });
 define('text!main-app/pages/home.html', ['module'], function(module) { module.exports = "<template>\n  Home for the main app\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

@@ -12,7 +12,7 @@ const routes: RouteConfig[] = [{
 }];
 
 @autoinject()
-@module("main-app", routes)
+@module("main-app", routes, )
 export class MainApplication extends BaseAureliaModule {
   public getModuleName(): string {
     return "main-app";

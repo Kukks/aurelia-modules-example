@@ -11,12 +11,12 @@ export class ModuleManager {
 
   public static fullModuleConfiguration: IModuleConfiguration;
 
-  public static registerModule(name: string,routes: RouteConfig[], module: AureliaModuleInitializer, asPlugin: boolean = false): void {
-    this.registeredModules.push({name, module,routes, asPlugin: false});
+  public static registerModule(name: string,routes: RouteConfig[], module: AureliaModuleInitializer, path: string = null): void {
+    this.registeredModules.push({name, module,routes, path: path});
   }
 
-  public registerModule(name: string,routes: RouteConfig[], module: AureliaModuleInitializer, asPlugin: boolean = false): void {
-    ModuleManager.registerModule(name, routes,module, asPlugin);
+  public registerModule(name: string,routes: RouteConfig[], module: AureliaModuleInitializer, path: string = null): void {
+    ModuleManager.registerModule(name, routes,module, path);
   }
 
   public getModuleConfiguration(name?: string, config?: IModuleConfiguration): IModuleConfiguration {

@@ -98,21 +98,22 @@ export abstract class BaseAureliaModule implements IAureliaModule {
         }
         viewPorts[viewport.name] = {
           moduleId: registeredModule ?
-            registeredModule.asPlugin ?
-              registeredModule.name :
-              `../${registeredModule.name}/index` :
+            (this.getPathToModule(registeredModule)) :
             viewport.module
         };
       }
     } else {
       viewPorts["default"] = {
-        moduleId: childModule.module.asPlugin ?
-          childModule.module.name : `../${childModule.module.name}/index`
+        moduleId: this.getPathToModule(childModule.module)
       };
     }
     return viewPorts;
   }
 
+  private getPathToModule(registeredModule: IRegisteredModule): string{
+    return registeredModule.path ?
+      registeredModule.name : `../${registeredModule.name}/index`
+  }
   private fixRoute(route: string | string[]): string | string[] {
     if (!Array.isArray(route)) {
       return this.fixTrailingSlash(route);
