@@ -8,6 +8,7 @@ export interface IModuleConfiguration {
   title?: string;
   viewPorts?: IViewportConfiguration[];
   module: string;
+  href?: string;
   children?: IModuleConfiguration[];
 }
 

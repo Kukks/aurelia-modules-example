@@ -35,7 +35,7 @@ export abstract class BaseAureliaModule implements IAureliaModule {
 
   public activate(params: any, navigationInstruction: NavigationInstruction) {
 
-    console.log("activating:", navigationInstruction);
+    console.log("activating:", navigationInstruction, params);
   }
 
   public configureRouter(routerConfiguration: RouterConfiguration,
@@ -76,6 +76,7 @@ export abstract class BaseAureliaModule implements IAureliaModule {
       title: childModule.config.title || childModule.config.module,
       route: this.fixRoute(route),
       nav: true,
+      href: childModule.config.href,
       viewPorts: this.createViewports(childModule),
       settings: {
         instancedModule: childModule,

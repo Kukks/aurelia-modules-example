@@ -6,7 +6,6 @@ export * from "./module.decorator";
 export * from "./module.manager";
 export * from "./module.models";
 
-
-export function configure(config: FrameworkConfiguration, moduleConfiguration: IModuleConfiguration ){
+export function configure(config: FrameworkConfiguration, moduleConfiguration: IModuleConfiguration) {
   ModuleManager.fullModuleConfiguration = moduleConfiguration;
 }

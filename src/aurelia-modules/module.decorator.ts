@@ -7,5 +7,5 @@ export function module<T>(name: string, routes: RouteConfig[] = []): ClassDecora
       ModuleManager.registerModule(name, routes, <any>target);
     }
     return target;
-  }
+  };
 }
