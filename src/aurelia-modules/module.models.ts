@@ -1,18 +1,17 @@
 import {RouteConfig} from "aurelia-router";
 
-export type AureliaModuleInitializer = (...args: any[]) => IAureliaModule;
+export type AureliaModuleInitializer = (...args: any[]) => AureliaModule;
 
-export interface IModuleConfiguration {
+export interface ModuleConfiguration {
   identifier?: string;
   route?: string | string[];
   title?: string;
-  viewPorts?: IViewportConfiguration[];
+  viewPorts?: ViewportConfiguration[];
   module: string;
-  href?: string;
-  children?: IModuleConfiguration[];
+  children?: ModuleConfiguration[];
 }
 
-export interface IRegisteredModule {
+export interface RegisteredModule {
   name: string;
   path: string;
   routes: RouteConfig[];
@@ -20,17 +19,17 @@ export interface IRegisteredModule {
 }
 
 export interface InstancedModule {
-  module: IRegisteredModule;
-  config: IModuleConfiguration;
+  module: RegisteredModule;
+  config: ModuleConfiguration;
 }
 
-export interface IAureliaModule extends Object {
+export interface AureliaModule extends Object {
   childModules: InstancedModule[];
   getModuleName(): string;
   getRoutes(): RouteConfig[];
 }
 
-export interface IViewportConfiguration {
+export interface ViewportConfiguration {
   name: string;
   module: string;
 }

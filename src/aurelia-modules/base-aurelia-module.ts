@@ -1,11 +1,11 @@
 import {ModuleManager} from "./module.manager";
 import {RouteMapper} from "aurelia-route-mapper";
 import {RouteConfig, Router, RouterConfiguration, NavigationInstruction} from "aurelia-router";
-import {IAureliaModule, IModuleConfiguration, InstancedModule, IRegisteredModule} from "./module.models";
+import {AureliaModule, ModuleConfiguration, InstancedModule, RegisteredModule} from "./module.models";
 import {autoinject} from "aurelia-dependency-injection";
 
 @autoinject()
-export abstract class BaseAureliaModule implements IAureliaModule {
+export abstract class BaseAureliaModule implements AureliaModule {
   public router: Router;
   protected instancedModule: InstancedModule;
 
@@ -61,9 +61,9 @@ export abstract class BaseAureliaModule implements IAureliaModule {
   }
 
   private  getChildModuleRoute(childModule: InstancedModule): RouteConfig[] {
-    const childrenConfiguration: IModuleConfiguration[] = childModule.config.children;
+    const childrenConfiguration: ModuleConfiguration[] = childModule.config.children;
     let childModuleRoutes: RouteConfig[] = [];
-    childrenConfiguration.forEach((childConfig: IModuleConfiguration) => {
+    childrenConfiguration.forEach((childConfig: ModuleConfiguration) => {
 
       const instancedModule = this.moduleManager.getInstancedModule(childConfig.module, childModule.config);
       childModuleRoutes.push(...this.getChildModuleRoute(instancedModule));
@@ -76,7 +76,6 @@ export abstract class BaseAureliaModule implements IAureliaModule {
       title: childModule.config.title || childModule.config.module,
       route: this.fixRoute(route),
       nav: true,
-      href: childModule.config.href,
       viewPorts: this.createViewports(childModule),
       settings: {
         instancedModule: childModule,
@@ -91,30 +90,30 @@ export abstract class BaseAureliaModule implements IAureliaModule {
     if (childModule.config.viewPorts && childModule.config.viewPorts) {
       viewPorts = {};
       for (let viewport of childModule.config.viewPorts) {
-        let registeredModule: IRegisteredModule;
+        let registeredModule: RegisteredModule;
         let instancedModule: InstancedModule = childModule.module.name === viewport.module ? childModule :
           this.moduleManager.getInstancedModule(viewport.module);
         if (instancedModule) {
           registeredModule = instancedModule.module;
         }
         viewPorts[viewport.name] = {
-          moduleId: registeredModule ?
-            (this.getPathToModule(registeredModule)) :
-            viewport.module
+          moduleId: this.getModulePath(registeredModule) || viewport.module
         };
       }
     } else {
       viewPorts["default"] = {
-        moduleId: this.getPathToModule(childModule.module)
+        moduleId: this.getModulePath(childModule.module)
       };
     }
     return viewPorts;
   }
-
-  private getPathToModule(registeredModule: IRegisteredModule): string{
-    return registeredModule.path ?
-      registeredModule.name : `../${registeredModule.name}/index`
+  private getModulePath(registeredModule: RegisteredModule): string{
+    if(registeredModule){
+      return registeredModule.path || `../${registeredModule.name}/index`;
+    }
+    return null;
   }
+
   private fixRoute(route: string | string[]): string | string[] {
     if (!Array.isArray(route)) {
       return this.fixTrailingSlash(route);

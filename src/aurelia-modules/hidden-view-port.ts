@@ -7,13 +7,13 @@ export class HiddenViewPort {
   constructor(private element: HTMLElement) {
   }
 
-  activate() {
+  public activate() {
     // hide the router-view element
-    (<HTMLElement>this.element.parentNode).classList.add('aurelia-hide');
+    (<HTMLElement>this.element.parentNode).classList.add("aurelia-hide");
   }
 
-  deactivate() {
+  public deactivate() {
     // show the router-view element
-    (<HTMLElement>this.element.parentNode).classList.remove('aurelia-hide');
+    (<HTMLElement>this.element.parentNode).classList.remove("aurelia-hide");
   }
 }
