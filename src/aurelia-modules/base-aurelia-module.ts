@@ -8,6 +8,7 @@ import {autoinject} from "aurelia-dependency-injection";
 export abstract class BaseAureliaModule implements AureliaModule {
   public router: Router;
   protected instancedModule: InstancedModule;
+  private static routeMapperConfigured: boolean = false;
 
   constructor(public routeMapper: RouteMapper, private moduleManager: ModuleManager) {
   }
@@ -47,7 +48,10 @@ export abstract class BaseAureliaModule implements AureliaModule {
     if (routerConfiguration) {
       const routes = this.getRoutes();
       routerConfiguration.map(routes);
-      this.routeMapper.map(routes);
+      if (!BaseAureliaModule.routeMapperConfigured) {
+        this.routeMapper.map(routes);
+      }
+      BaseAureliaModule.routeMapperConfigured = true;
     }
     this.router = router;
   }
@@ -70,7 +74,6 @@ export abstract class BaseAureliaModule implements AureliaModule {
     });
 
     const route = childModule.config.route || childModule.config.module;
-
     const result: RouteConfig[] = [{
       name: childModule.config.identifier || childModule.config.module,
       title: childModule.config.title || childModule.config.module,
@@ -82,6 +85,10 @@ export abstract class BaseAureliaModule implements AureliaModule {
         childRoutes: [...childModule.module.routes, ...childModuleRoutes]
       }
     }];
+
+    if (childModule.config.href) {
+      result[0].href = childModule.config.href;
+    }
     return result;
   }
 
@@ -107,8 +114,9 @@ export abstract class BaseAureliaModule implements AureliaModule {
     }
     return viewPorts;
   }
-  private getModulePath(registeredModule: RegisteredModule): string{
-    if(registeredModule){
+
+  private getModulePath(registeredModule: RegisteredModule): string {
+    if (registeredModule) {
       return registeredModule.path || `../${registeredModule.name}/index`;
     }
     return null;

@@ -5,6 +5,7 @@ export type AureliaModuleInitializer = (...args: any[]) => AureliaModule;
 export interface ModuleConfiguration {
   identifier?: string;
   route?: string | string[];
+  href?: string;
   title?: string;
   viewPorts?: ViewportConfiguration[];
   module: string;
