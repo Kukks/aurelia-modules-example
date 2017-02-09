@@ -6,6 +6,11 @@ export * from "./module.decorator";
 export * from "./module.manager";
 export * from "./module.models";
 
-export function configure(config: FrameworkConfiguration, moduleConfiguration: ModuleConfiguration) {
+export function configure(config: FrameworkConfiguration,
+                          moduleConfiguration: ModuleConfiguration,
+                          unknownRouteModule: string = null) {
   ModuleManager.fullModuleConfiguration = moduleConfiguration;
+  if (unknownRouteModule) {
+    ModuleManager.unknownRouteModule = unknownRouteModule;
+  }
 }

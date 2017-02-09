@@ -7,7 +7,7 @@ import {autoinject} from "aurelia-dependency-injection";
 @autoinject()
 export abstract class BaseAureliaModule implements AureliaModule {
   public router: Router;
-  protected instancedModule: InstancedModule;
+  public instancedModule: InstancedModule;
   private static routeMapperConfigured: boolean = false;
 
   constructor(public routeMapper: RouteMapper, private moduleManager: ModuleManager) {
@@ -17,8 +17,6 @@ export abstract class BaseAureliaModule implements AureliaModule {
 
   public getRoutes(): RouteConfig[] {
     const childModuleRoutes = this.childModuleRoutes;
-    console.log(this.instancedModule.config.identifier ||
-      this.instancedModule.config.module, "the dynamic routes generated are: ", childModuleRoutes);
     return [...this.instancedModule ? this.instancedModule.module.routes : [], ...childModuleRoutes];
   };
 
@@ -34,11 +32,6 @@ export abstract class BaseAureliaModule implements AureliaModule {
     return result;
   }
 
-  public activate(params: any, navigationInstruction: NavigationInstruction) {
-
-    console.log("activating:", navigationInstruction, params);
-  }
-
   public configureRouter(routerConfiguration: RouterConfiguration,
                          router: Router,
                          params: Object,
@@ -51,8 +44,14 @@ export abstract class BaseAureliaModule implements AureliaModule {
       if (!BaseAureliaModule.routeMapperConfigured) {
         this.routeMapper.map(routes);
       }
+
+      console.log("routes for " + this.getModuleName(), routes);
       BaseAureliaModule.routeMapperConfigured = true;
     }
+    if (ModuleManager.unknownRouteModule && this.getModuleName() !== ModuleManager.unknownRouteModule) {
+      routerConfiguration.mapUnknownRoutes(ModuleManager.unknownRouteModule);
+    }
+
     this.router = router;
   }
 
@@ -65,7 +64,7 @@ export abstract class BaseAureliaModule implements AureliaModule {
   }
 
   private  getChildModuleRoute(childModule: InstancedModule): RouteConfig[] {
-    const childrenConfiguration: ModuleConfiguration[] = childModule.config.children;
+    const childrenConfiguration: ModuleConfiguration[] = childModule.config.children || [];
     let childModuleRoutes: RouteConfig[] = [];
     childrenConfiguration.forEach((childConfig: ModuleConfiguration) => {
 

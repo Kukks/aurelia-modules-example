@@ -10,17 +10,18 @@ export class ModuleManager {
   private static registeredModules: RegisteredModule[] = [];
 
   public static fullModuleConfiguration: ModuleConfiguration;
+  public static unknownRouteModule: string;
 
-  public static registerModule(
-    name: string,
-    routes: RouteConfig[],
-    module: AureliaModuleInitializer,
-    path: string = undefined): void {
+  public static registerModule(name: string,
+                               routes: RouteConfig[],
+                               module: AureliaModuleInitializer,
+                               path: string = undefined): void {
     this.registeredModules.push({name, module, routes, path});
   }
 
-  public registerModule(
-    name: string, routes: RouteConfig[], module: AureliaModuleInitializer, path: string = undefined): void {
+  public registerModule(name: string,
+                        routes: RouteConfig[],
+                        module: AureliaModuleInitializer, path: string = undefined): void {
     ModuleManager.registerModule(name, routes, module, path);
   }
 
@@ -28,12 +29,12 @@ export class ModuleManager {
     if (!config) {
       return ModuleManager.fullModuleConfiguration;
     }
-    if (name) {
+    if (name && config.children) {
       return config.children.find((moduleConfig: ModuleConfiguration) => {
         return moduleConfig.module === name;
       });
     } else {
-      return config[0];
+      return config;
     }
   }
 
@@ -68,6 +69,19 @@ export class ModuleManager {
             }
           );
         }
+      }
+    }
+
+    if (moduleConfiguration.module !== ModuleManager.unknownRouteModule) {
+      if (!result.find((im: InstancedModule) => {
+          return im.module.name === ModuleManager.unknownRouteModule;
+        })) {
+        const unknownModule = this.getInstancedModule(ModuleManager.unknownRouteModule, {
+          module: ModuleManager.unknownRouteModule,
+          route: "404"
+        });
+        result.push(unknownModule);
+
       }
     }
     return result;
