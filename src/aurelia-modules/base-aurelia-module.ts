@@ -1,6 +1,6 @@
 import {ModuleManager} from "./module.manager";
 import {RouteMapper} from "aurelia-route-mapper";
-import {RouteConfig, Router, RouterConfiguration, NavigationInstruction} from "aurelia-router";
+import {RouteConfig, Router, RouterConfiguration} from "aurelia-router";
 import {AureliaModule, ModuleConfiguration, InstancedModule, RegisteredModule} from "./module.models";
 import {autoinject} from "aurelia-dependency-injection";
 
@@ -47,11 +47,14 @@ export abstract class BaseAureliaModule implements AureliaModule {
 
       console.log("routes for " + this.getModuleName(), routes);
       BaseAureliaModule.routeMapperConfigured = true;
-    }
-    if (ModuleManager.unknownRouteModule && this.getModuleName() !== ModuleManager.unknownRouteModule) {
-      routerConfiguration.mapUnknownRoutes(ModuleManager.unknownRouteModule);
-    }
 
+      if (ModuleManager.unknownRouteModule && this.getModuleName() !== ModuleManager.unknownRouteModule) {
+        const unknownRoute = routes.find((routeConfig: RouteConfig) => {
+          return routeConfig.name === ModuleManager.unknownRouteModule;
+        })
+        routerConfiguration.mapUnknownRoutes(unknownRoute);
+      }
+    }
     this.router = router;
   }
 
