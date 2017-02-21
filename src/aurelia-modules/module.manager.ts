@@ -15,8 +15,10 @@ export class ModuleManager {
   public static registerModule(name: string,
                                routes: RouteConfig[],
                                module: AureliaModuleInitializer,
-                               path: string = undefined): void {
-    this.registeredModules.push({name, module, routes, path});
+                               path: string = undefined): RegisteredModule {
+    const regModule: RegisteredModule = {name, module, routes, path};
+    this.registeredModules.push(regModule);
+    return regModule;
   }
 
   public registerModule(name: string,
@@ -25,26 +27,60 @@ export class ModuleManager {
     ModuleManager.registerModule(name, routes, module, path);
   }
 
-  public getModuleConfiguration(name?: string, config?: ModuleConfiguration): ModuleConfiguration {
-    if (!config) {
-      return ModuleManager.fullModuleConfiguration;
+  private getModuleConfigurationFromChildren(name: string, childrenConfig: ModuleConfiguration[]): ModuleConfiguration {
+    let result = null;
+    for (let moduleConfig of childrenConfig) {
+      const childConfig = this.getModuleConfiguration(name, moduleConfig);
+      if (childConfig) {
+        result = childConfig;
+        break;
+      }
     }
-    if (name && config.children) {
-      return config.children.find((moduleConfig: ModuleConfiguration) => {
-        return moduleConfig.module === name;
-      });
-    } else {
+    return result;
+  }
+
+  public getModuleConfiguration(name?: string, config?: ModuleConfiguration): ModuleConfiguration {
+    if (!config && (ModuleManager.fullModuleConfiguration.module === name || !name)) {
+      return ModuleManager.fullModuleConfiguration;
+    } else if (!config && name) {
+      return this.getModuleConfiguration(name, ModuleManager.fullModuleConfiguration);
+    } else if (config && !name) {
       return config;
+    } else if (config && name) {
+      if (config.module === name) {
+        return config;
+      } else if (config.children || config.viewPorts) {
+        if (config.children) {
+          const result = this.getModuleConfigurationFromChildren(name, config.children);
+          if (result) {
+            return result;
+          }
+        }
+        if (config.viewPorts) {
+          let matchingViewports = [];
+
+          for (let viewportConfig of config.viewPorts) {
+            if (viewportConfig.module === name) {
+              matchingViewports.push(viewportConfig);
+            }
+          }
+
+          if (matchingViewports.length > 0) {
+            return config;
+          }
+        }
+
+      }
     }
   }
 
-  public getModule(module: string): RegisteredModule {
+  public  getModule(module: string): RegisteredModule {
     return ModuleManager.registeredModules.find((registeredModule: RegisteredModule) => {
       return registeredModule.name === module;
     });
   }
 
-  public getInstancedModule(moduleName: string, config?: ModuleConfiguration): InstancedModule {
+  public  getInstancedModule(moduleName: string, config ?: ModuleConfiguration): InstancedModule {
     const registeredModule = this.getModule(moduleName);
     const moduleConfig = this.getModuleConfiguration(moduleName, config);
     if (registeredModule) {
@@ -56,9 +92,9 @@ export class ModuleManager {
     return null;
   }
 
-  public getChildModules(moduleConfiguration: ModuleConfiguration): InstancedModule[] {
+  public  getChildModules(moduleConfiguration: ModuleConfiguration): InstancedModule[] {
     let result: InstancedModule[] = [];
-    if (moduleConfiguration.children && moduleConfiguration.children.length > 0) {
+    if (moduleConfiguration && moduleConfiguration.children && moduleConfiguration.children.length > 0) {
       for (let childModule of moduleConfiguration.children) {
         const module = this.getModule(childModule.module);
         if (module) {
@@ -72,13 +108,14 @@ export class ModuleManager {
       }
     }
 
-    if (moduleConfiguration.module !== ModuleManager.unknownRouteModule) {
+    if (moduleConfiguration && moduleConfiguration.module !== ModuleManager.unknownRouteModule) {
       if (!result.find((im: InstancedModule) => {
           return im.module.name === ModuleManager.unknownRouteModule;
         })) {
         const unknownModule = this.getInstancedModule(ModuleManager.unknownRouteModule, {
           module: ModuleManager.unknownRouteModule,
-          route: "404"
+          route: "404",
+          nav: false
         });
         result.push(unknownModule);
 

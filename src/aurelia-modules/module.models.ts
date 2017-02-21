@@ -9,6 +9,8 @@ export interface ModuleConfiguration {
   title?: string;
   viewPorts?: ViewportConfiguration[];
   module: string;
+  nav?: boolean;
+  settings?: {};
   children?: ModuleConfiguration[];
 }
 
@@ -32,5 +34,5 @@ export interface AureliaModule extends Object {
 
 export interface ViewportConfiguration {
   name: string;
-  module: string;
+  module?: string;
 }

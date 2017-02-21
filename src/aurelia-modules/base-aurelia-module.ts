@@ -10,7 +10,7 @@ export abstract class BaseAureliaModule implements AureliaModule {
   public instancedModule: InstancedModule;
   private static routeMapperConfigured: boolean = false;
 
-  constructor(public routeMapper: RouteMapper, private moduleManager: ModuleManager) {
+  constructor(public routeMapper: RouteMapper, protected moduleManager: ModuleManager) {
   }
 
   public abstract getModuleName(): string;
@@ -51,7 +51,7 @@ export abstract class BaseAureliaModule implements AureliaModule {
       if (ModuleManager.unknownRouteModule && this.getModuleName() !== ModuleManager.unknownRouteModule) {
         const unknownRoute = routes.find((routeConfig: RouteConfig) => {
           return routeConfig.name === ModuleManager.unknownRouteModule;
-        })
+        });
         routerConfiguration.mapUnknownRoutes(unknownRoute);
       }
     }
@@ -59,14 +59,15 @@ export abstract class BaseAureliaModule implements AureliaModule {
   }
 
   private setModuleConfiguration(routeConfig?: RouteConfig) {
-    if (routeConfig && routeConfig.settings.instancedModule) {
+    if (routeConfig && routeConfig.settings.instancedModule &&
+      this.getModuleName() === routeConfig.settings.instancedModule.config.module) {
       this.instancedModule = routeConfig.settings.instancedModule;
     } else {
       this.instancedModule = this.moduleManager.getInstancedModule(this.getModuleName());
     }
   }
 
-  private  getChildModuleRoute(childModule: InstancedModule): RouteConfig[] {
+  protected getChildModuleRoute(childModule: InstancedModule): RouteConfig[] {
     const childrenConfiguration: ModuleConfiguration[] = childModule.config.children || [];
     let childModuleRoutes: RouteConfig[] = [];
     childrenConfiguration.forEach((childConfig: ModuleConfiguration) => {
@@ -76,16 +77,21 @@ export abstract class BaseAureliaModule implements AureliaModule {
     });
 
     const route = childModule.config.route || childModule.config.module;
+    let settings: {} = {
+      instancedModule: childModule,
+      childRoutes: [...childModule.module.routes, ...childModuleRoutes]
+    };
+    if (childModule.config.settings) {
+      settings = Object.assign(settings, childModule.config.settings);
+    }
+
     const result: RouteConfig[] = [{
       name: childModule.config.identifier || childModule.config.module,
       title: childModule.config.title || childModule.config.module,
       route: this.fixRoute(route),
-      nav: true,
+      nav: childModule.config.nav === undefined ? true : childModule.config.nav,
       viewPorts: this.createViewports(childModule),
-      settings: {
-        instancedModule: childModule,
-        childRoutes: [...childModule.module.routes, ...childModuleRoutes]
-      }
+      settings
     }];
 
     if (childModule.config.href) {
@@ -99,15 +105,21 @@ export abstract class BaseAureliaModule implements AureliaModule {
     if (childModule.config.viewPorts && childModule.config.viewPorts) {
       viewPorts = {};
       for (let viewport of childModule.config.viewPorts) {
-        let registeredModule: RegisteredModule;
-        let instancedModule: InstancedModule = childModule.module.name === viewport.module ? childModule :
-          this.moduleManager.getInstancedModule(viewport.module);
-        if (instancedModule) {
-          registeredModule = instancedModule.module;
+        if (viewport.name === "default") {
+          viewPorts[viewport.name] = {
+            moduleId: this.getModulePath(childModule.module)
+          };
+        } else {
+          let registeredModule: RegisteredModule;
+          let instancedModule: InstancedModule = childModule.module.name === viewport.module ? childModule :
+            this.moduleManager.getInstancedModule(viewport.module);
+          if (instancedModule) {
+            registeredModule = instancedModule.module;
+          }
+          viewPorts[viewport.name] = {
+            moduleId: this.getModulePath(registeredModule) || viewport.module
+          };
         }
-        viewPorts[viewport.name] = {
-          moduleId: this.getModulePath(registeredModule) || viewport.module
-        };
       }
     } else {
       viewPorts["default"] = {
@@ -124,17 +136,21 @@ export abstract class BaseAureliaModule implements AureliaModule {
     return null;
   }
 
-  private fixRoute(route: string | string[]): string | string[] {
+  protected fixRoute(route: string | string[]): string | string[] {
     if (!Array.isArray(route)) {
       return this.fixTrailingSlash(route);
     } else {
-      return Array.from(route, (singleRoute: string, i: number) => this.fixTrailingSlash(singleRoute));
+      return Array.from(route, (singleRoute: string) => this.fixTrailingSlash(singleRoute));
     }
   }
 
-  private fixTrailingSlash(str: string): string {
+  protected fixTrailingSlash(str: string): string {
     if (str && !str.endsWith("/")) {
       str = `${str}/`;
+    }
+
+    if (str && str.endsWith("//")) {
+      str = str.substr(0, str.length - 1);
     }
     return str;
   }
