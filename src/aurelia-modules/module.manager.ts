@@ -2,7 +2,7 @@ import {
   RegisteredModule,
   ModuleConfiguration,
   InstancedModule,
-  AureliaModuleInitializer
+  AureliaModuleInitializer, AureliaModule
 } from "./module.models";
 import {RouteConfig} from "aurelia-router";
 
@@ -74,11 +74,12 @@ export class ModuleManager {
     }
   }
 
-  public  getModule(module: string): RegisteredModule {
+  public  getModule(module: string | AureliaModule): RegisteredModule {
     return ModuleManager.registeredModules.find((registeredModule: RegisteredModule) => {
-      return registeredModule.name === module;
+      return registeredModule.name === module || registeredModule.module === module as any;
     });
   }
+
 
   public  getInstancedModule(moduleName: string, config ?: ModuleConfiguration): InstancedModule {
     const registeredModule = this.getModule(moduleName);
