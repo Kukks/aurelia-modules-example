@@ -7,9 +7,19 @@ export * from "./module.manager";
 export * from "./module.models";
 
 export function configure(config: FrameworkConfiguration,
-                          moduleConfiguration: ModuleConfiguration,
+                          moduleConfiguration: ModuleConfiguration | (() => ModuleConfiguration),
                           unknownRouteModule: string = null) {
-  ModuleManager.fullModuleConfiguration = moduleConfiguration;
+  switch (typeof moduleConfiguration) {
+    case "object":
+      ModuleManager.fullModuleConfiguration = moduleConfiguration as ModuleConfiguration;
+      break;
+    case "function":
+      ModuleManager.fullModuleConfiguration = (moduleConfiguration as () => ModuleConfiguration)();
+      break;
+    default:
+      break;
+  }
+
   if (unknownRouteModule) {
     ModuleManager.unknownRouteModule = unknownRouteModule;
   }
