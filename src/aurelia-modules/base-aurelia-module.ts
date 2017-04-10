@@ -52,6 +52,15 @@ export abstract class BaseAureliaModule implements AureliaModule {
         const unknownRoute = routes.find((routeConfig: RouteConfig) => {
           return routeConfig.name === ModuleManager.unknownRouteModule;
         });
+
+        if (this.instancedModule.module.path) {
+          const folderCountDiff = (this.instancedModule.module.path.split("/").length - 1) - (unknownRoute.viewPorts.default.moduleId.split("/").length - 1);
+          if (folderCountDiff > 0) {
+            for (let i = 0; i < folderCountDiff; i++) {
+              unknownRoute.viewPorts.default.moduleId = `../${unknownRoute.viewPorts.default.moduleId}`;
+            }
+          }
+        }
         routerConfiguration.mapUnknownRoutes(unknownRoute);
       }
     }
