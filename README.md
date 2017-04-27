@@ -1,3 +1,5 @@
+# aurelia modules is no longer viable after the Platform.modulename implementation on Aurelia
+
 # aurelia-modules-example
 A proof of concept for modular plug and play aurelia modules
 
